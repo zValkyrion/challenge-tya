@@ -50,7 +50,7 @@ function parseDate(raw) {
   if (!raw) return null;
   const s = String(raw).trim();
   if (/^\d{8}$/.test(s)) {
-    return new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`);
+    return new Date(`${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`);
   }
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
     const [d, m, y] = s.split("/");
@@ -231,7 +231,7 @@ function runPipeline(clientesRaw, facturasRaw, pagosRaw) {
 
   const carteraVencida = tablaBase.filter(
     (f) => !f.es_nota_credito && f.monto_pagado_total < f.monto_total &&
-    f.fecha_vencimiento && f.fecha_vencimiento < FECHA_CORTE
+      f.fecha_vencimiento && f.fecha_vencimiento < FECHA_CORTE
   );
 
   log("ok", "Pipeline completado exitosamente.");
@@ -742,11 +742,11 @@ En 4-5 oraciones concisas (sin bullets, como párrafo de resumen ejecutivo para 
                     result.facturasRechazadas.length === 0
                       ? <div style={{ padding: 20, color: C.textMuted, fontSize: 13 }}>Sin registros rechazados.</div>
                       : <TablePreview data={result.facturasRechazadas} columns={[
-                          { key: "id_factura", label: "id_factura" },
-                          { key: "id_cliente", label: "id_cliente" },
-                          { key: "monto_total", label: "monto_total" },
-                          { key: "razon", label: "razon_rechazo" },
-                        ]} />
+                        { key: "id_factura", label: "id_factura" },
+                        { key: "id_cliente", label: "id_cliente" },
+                        { key: "monto_total", label: "monto_total" },
+                        { key: "razon", label: "razon_rechazo" },
+                      ]} />
                   )}
                 </div>
               </div>
@@ -920,7 +920,7 @@ En 4-5 oraciones concisas (sin bullets, como párrafo de resumen ejecutivo para 
                 {[
                   { label: "Python 3.12", color: C.blue }, { label: "pandas 2.x", color: C.blue },
                   { label: "pytest", color: C.green }, { label: "black + ruff", color: C.green },
-                  { label: "PostgreSQL / DuckDB", color: C.teal }, { label: "AWS Lambda", color: C.amber },
+                  { label: "AWS Lambda", color: C.amber },
                   { label: "AWS S3", color: C.amber }, { label: "AWS EventBridge", color: C.amber },
                   { label: "AWS SES", color: C.amber }, { label: "GitHub Actions", color: C.purple },
                   { label: "Docker", color: C.purple },
@@ -934,7 +934,7 @@ En 4-5 oraciones concisas (sin bullets, como párrafo de resumen ejecutivo para 
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24 }}>
               <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.08em" }}>.github/workflows/ci.yml</div>
               <pre style={{ margin: 0, fontSize: 11, color: C.text, lineHeight: 1.7, fontFamily: "monospace", overflowX: "auto" }}>
-{`name: CI Pipeline
+                {`name: CI Pipeline
 
 on: [push, pull_request]
 

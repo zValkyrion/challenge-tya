@@ -106,42 +106,38 @@ function IssueRow({ issue, onCorrect, onAcknowledge, status }) {
   const isResolved = status === "corrected" || status === "acknowledged";
 
   return (
-    <div style={{
-      display: "grid", gridTemplateColumns: "60px 70px 1fr 140px 140px 200px",
+    <div className="issue-row" style={{
+      display: "flex", flexWrap: "wrap", gap: "8px 12px", alignItems: "center",
       padding: "10px 14px", borderBottom: `1px solid ${C.border}22`,
       background: isResolved ? C.surfaceHover : "transparent",
       opacity: isResolved ? 0.6 : 1,
-      transition: "all 0.2s", fontSize: 12, alignItems: "center",
+      transition: "all 0.2s", fontSize: 12,
     }}>
-      <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <Badge color={color} bg={color + "15"}>{issue.severity}</Badge>
+        <span style={{ color: C.textMuted, fontSize: 11 }}>{issue.dataset}</span>
       </div>
-      <div style={{ color: C.textMuted }}>{issue.dataset}</div>
-      <div>
+      <div style={{ flex: "1 1 200px", minWidth: 0 }}>
         <div style={{ color: C.text }}>{issue.description}</div>
-        <div style={{ color: C.textDim, fontSize: 11, marginTop: 2 }}>
+        <div style={{ color: C.textDim, fontSize: 11, marginTop: 2, wordBreak: "break-word" }}>
           {issue.pkField}={issue.pkValue} → {issue.field}: <span style={{ color: C.amber }}>"{issue.currentValue}"</span>
         </div>
-      </div>
-      <div>
         {issue.suggestion && (
-          <span style={{ color: C.green, fontSize: 11 }}>Sugerencia: "{issue.suggestion}"</span>
+          <div style={{ color: C.green, fontSize: 11, marginTop: 2 }}>Sugerencia: "{issue.suggestion}"</div>
         )}
       </div>
-      <div>
-        {editing ? (
+      <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0, flexWrap: "wrap" }}>
+        {editing && (
           <input value={editValue} onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { onCorrect(issue, editValue); setEditing(false); } }}
             style={{
               background: C.surfaceHover, border: `1px solid ${C.teal}44`, borderRadius: 4,
-              padding: "4px 8px", color: C.text, fontSize: 11, width: "100%",
+              padding: "4px 8px", color: C.text, fontSize: 11, width: 120,
               fontFamily: "inherit", outline: "none",
             }}
             autoFocus
           />
-        ) : null}
-      </div>
-      <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+        )}
         {!isResolved && (
           <>
             {issue.suggestion && (
@@ -212,8 +208,8 @@ export default function DataCorrectionPanel({ files, onCorrectionsReady }) {
   return (
     <div className="animate-slideUp" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
       {/* Header */}
-      <div style={{ padding: "20px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
+      <div className="correction-header" style={{ padding: "20px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <div style={{ flex: "1 1 200px" }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4 }}>
             🔍 Revisión de datos
           </div>
@@ -221,7 +217,7 @@ export default function DataCorrectionPanel({ files, onCorrectionsReady }) {
             {total} problemas detectados · {resolved} resueltos · {total - resolved} pendientes
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button onClick={() => { setCorrections([]); setIssueStatuses({}); onCorrectionsReady([]); toast?.("Correcciones reseteadas", "info"); }} style={{
             background: "none", border: `1px solid ${C.border}`, color: C.textDim,
             borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 600,
@@ -243,7 +239,7 @@ export default function DataCorrectionPanel({ files, onCorrectionsReady }) {
       </div>
 
       {/* Severity summary */}
-      <div style={{ padding: "12px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", gap: 12 }}>
+      <div className="correction-filters" style={{ padding: "12px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", flexWrap: "wrap", gap: "8px 12px", alignItems: "center" }}>
         {[
           { label: "Alta", count: severityCounts.alta, color: C.red },
           { label: "Media", count: severityCounts.media, color: C.amber },
@@ -254,12 +250,12 @@ export default function DataCorrectionPanel({ files, onCorrectionsReady }) {
             background: s.count > 0 ? s.color + "15" : C.surfaceHover,
             color: s.count > 0 ? s.color : C.textDim,
             border: `1px solid ${s.count > 0 ? s.color + "33" : C.border}`,
-            cursor: "pointer",
+            cursor: "pointer", flexShrink: 0,
           }} onClick={() => setFilterSeverity(filterSeverity === s.label.toLowerCase() ? "all" : s.label.toLowerCase())}>
             {s.label}: {s.count}
           </div>
         ))}
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
           {["clientes", "facturas", "pagos"].map((d) => (
             <button key={d} onClick={() => setFilterDataset(filterDataset === d ? "all" : d)} style={{
               background: filterDataset === d ? C.surfaceActive : "none",

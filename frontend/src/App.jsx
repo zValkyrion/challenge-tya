@@ -106,12 +106,12 @@ Sé muy directo y propositivo. Español.`;
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${apiKey}`
         },
-        body: JSON.stringify({ 
-          model: "gpt-4o", 
+        body: JSON.stringify({
+          model: "gpt-4o",
           messages: [
             { role: "system", content: "Eres un consultor senior especializado en procesos financieros y arquitectura de datos empresariales." },
             { role: "user", content: prompt }
@@ -126,9 +126,9 @@ Sé muy directo y propositivo. Español.`;
       } else {
         setAiInsight(data.choices?.[0]?.message?.content || "Análisis estratégico completado sin datos adicionales.");
       }
-    } catch (e) { 
+    } catch (e) {
       console.error("AI Fetch Error:", e);
-      setAiInsight("⚠️ No se pudo conectar con OpenAI. Verifica tu conexión a internet y que la API Key sea válida."); 
+      setAiInsight("⚠️ No se pudo conectar con OpenAI. Verifica tu conexión a internet y que la API Key sea válida.");
     }
     setAiLoading(false);
   }, [filesReady, corrections, toast]);
@@ -245,7 +245,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
   return (
     <div style={{ background: C.bg, minHeight: "100vh", color: C.text, fontFamily: "'Inter', 'IBM Plex Mono', system-ui, monospace" }}>
       {/* ─── Header ─── */}
-      <div className="glass" style={{ borderBottom: `1px solid ${C.border}`, padding: "18px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <div className="glass responsive-header" style={{ borderBottom: `1px solid ${C.border}`, padding: "18px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <div>
           <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ color: C.teal, fontSize: 20 }}>◆</span>
@@ -253,7 +253,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
           </div>
           <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>Pipeline de calidad de datos · Nov–Dic 2024</div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="responsive-header-badges" style={{ display: "flex", gap: 8 }}>
           <Badge color={C.teal} bg={C.tealBg}>Python · pandas</Badge>
           <Badge color={C.blue} bg={C.blueBg}>SQL</Badge>
           <Badge color={C.purple} bg={C.purpleBg}>Pipeline v2.0</Badge>
@@ -261,7 +261,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
       </div>
 
       {/* ─── Tabs ─── */}
-      <div style={{ borderBottom: `1px solid ${C.border}`, padding: "0 32px", display: "flex", gap: 0, background: C.surface }}>
+      <div className="responsive-tabs" style={{ borderBottom: `1px solid ${C.border}`, padding: "0 32px", display: "flex", gap: 0, background: C.surface }}>
         {tabs.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             background: "none", border: "none", cursor: "pointer",
@@ -277,7 +277,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
         ))}
       </div>
 
-      <div style={{ padding: 32, maxWidth: 1140, margin: "0 auto" }}>
+      <div className="responsive-padding" style={{ padding: 32, maxWidth: 1140, margin: "0 auto" }}>
 
         {/* ━━━ EVALUACIÓN ━━━ */}
         {tab === "evaluacion" && (
@@ -380,7 +380,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
             {stage === "done" && result && (
               <div className="animate-slideUp">
                 <SectionHeader step="04" label="Resumen de resultados" />
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+                <div className="grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
                   <MetricCard label="Facturas válidas" value={result.counts.facturasValidas} color={C.teal} sub={`de ${result.counts.facturas} totales`} icon="📄" onSelect={() => setDetailFilter({ type: "valid", label: "Facturas Válidas", data: result.tablaBase })} />
                   <MetricCard label="En staging" value={result.counts.facturasRechazadas} color={result.counts.facturasRechazadas > 0 ? C.red : C.textMuted} sub="cliente inválido" icon="🚫" onSelect={() => setDetailFilter({ type: "staging", label: "Facturas en Staging", data: result.facturasRechazadas })} />
                   <MetricCard label="Flags detectados" value={Object.values(result.totalFlags).reduce((a, b) => a + b, 0)} color={C.amber} sub="anomalías" icon="⚑" onSelect={() => setDetailFilter({ type: "all_flags", label: "Facturas con Flags", data: result.tablaBase.filter(r => r.flag_pago_antes_emision || r.flag_sobrepago || r.flag_sin_pagos || r.flag_pago_futuro) })} />
@@ -393,7 +393,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
             {stage === "done" && result && (
               <div className="animate-slideUp">
                 <SectionHeader step="05" label="Banderas de Calidad" />
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+                <div className="grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
                   <FlagCard label="Pago Pre-Emisión" count={result.totalFlags.pago_antes_emision} color={C.red} description="Pagos recibidos antes de la fecha de factura." onSelect={() => setDetailFilter({ type: "flag_pre", label: "Pagos Pre-Emisión", data: result.tablaBase.filter(r => r.flag_pago_antes_emision) })} />
                   <FlagCard label="Sobrepago" count={result.totalFlags.sobrepago} color={C.amber} description="Monto pagado excede el monto total de la factura." onSelect={() => setDetailFilter({ type: "flag_over", label: "Sobrepagos Detectados", data: result.tablaBase.filter(r => r.flag_sobrepago) })} />
                   <FlagCard label="Sin Pagos" count={result.totalFlags.sin_pagos} color={C.blue} description="Facturas que no tienen registro de pago." onSelect={() => setDetailFilter({ type: "flag_none", label: "Facturas sin Pagos", data: result.tablaBase.filter(r => r.flag_sin_pagos) })} />
@@ -412,9 +412,9 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                   <button onClick={() => setDetailFilter(null)} style={{ background: "none", border: "none", color: C.textDim, cursor: "pointer", fontSize: 18 }}>×</button>
                 </div>
                 <TablePreview data={detailFilter.data} columns={
-                   detailFilter.type === "staging" 
-                   ? [ { key: "id_factura", label: "ID Factura" }, { key: "id_cliente", label: "ID Cliente" }, { key: "monto_total", label: "Monto" }, { key: "razon", label: "Razón" } ]
-                   : [ { key: "id_factura", label: "Factura" }, { key: "id_cliente", label: "Cliente" }, { key: "monto_total", label: "Monto" }, { key: "monto_pagado_total", label: "Pagado" }, { key: "estatus_factura", label: "Estatus" } ]
+                  detailFilter.type === "staging"
+                    ? [{ key: "id_factura", label: "ID Factura" }, { key: "id_cliente", label: "ID Cliente" }, { key: "monto_total", label: "Monto" }, { key: "razon", label: "Razón" }]
+                    : [{ key: "id_factura", label: "Factura" }, { key: "id_cliente", label: "Cliente" }, { key: "monto_total", label: "Monto" }, { key: "monto_pagado_total", label: "Pagado" }, { key: "estatus_factura", label: "Estatus" }]
                 } />
               </div>
             )}
@@ -454,11 +454,11 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                     result.facturasRechazadas.length === 0
                       ? <div style={{ padding: 24, color: C.textMuted, fontSize: 13, textAlign: "center" }}>Sin registros rechazados.</div>
                       : <TablePreview data={result.facturasRechazadas} columns={[
-                          { key: "id_factura", label: "ID Factura" },
-                          { key: "id_cliente", label: "ID Cliente" },
-                          { key: "monto_total", label: "Monto" },
-                          { key: "razon", label: "Razón" },
-                        ]} />
+                        { key: "id_factura", label: "ID Factura" },
+                        { key: "id_cliente", label: "ID Cliente" },
+                        { key: "monto_total", label: "Monto" },
+                        { key: "razon", label: "Razón" },
+                      ]} />
                   )}
                 </div>
               </div>
@@ -480,7 +480,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
               </div>
 
               {/* ER Visual */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, overflowX: "auto", padding: "8px 0" }}>
+              <div className="er-diagram" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, overflowX: "auto", padding: "8px 0" }}>
 
                 {/* Tabla: clientes */}
                 <div style={{ background: "#0d1117", border: `2px solid ${C.teal}`, borderRadius: 10, minWidth: 190, fontFamily: "monospace", fontSize: 11 }}>
@@ -504,7 +504,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                 </div>
 
                 {/* Arrow 1: clientes → facturas */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 12px" }}>
+                <div className="er-arrow" style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 12px" }}>
                   <div style={{ fontSize: 10, color: C.teal, marginBottom: 4 }}>1</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                     <div style={{ width: 40, height: 2, background: `linear-gradient(90deg, ${C.teal}, ${C.blue})` }} />
@@ -538,7 +538,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                 </div>
 
                 {/* Arrow 2: facturas → pagos */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 12px" }}>
+                <div className="er-arrow" style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 12px" }}>
                   <div style={{ fontSize: 10, color: C.blue, marginBottom: 4 }}>1</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                     <div style={{ width: 40, height: 2, background: `linear-gradient(90deg, ${C.blue}, ${C.purple})` }} />
@@ -594,7 +594,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
               </div>
 
               {/* Query selector tabs */}
-              <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+              <div className="sql-query-tabs" style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
                 {SQL_QUERIES.map((q, i) => (
                   <button key={i} onClick={() => setActiveQuery(i)} style={{
                     background: activeQuery === i ? C.surfaceHover : "none",
@@ -713,7 +713,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                   { status: "VENCIDA", condition: "sin pagos Y fecha_vencimiento < 31/12/2024", color: C.red, why: "Urgente — debió pagarse y no se hizo absolutamente nada" },
                   { status: "PENDIENTE", condition: "cualquier otro caso", color: C.amber, why: "Dentro de plazo o sin información suficiente para clasificar" },
                 ].map((s, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 14px", background: s.color + "11", border: `1px solid ${s.color}33`, borderRadius: 8 }}>
+                  <div key={i} className="status-logic-row" style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 14px", background: s.color + "11", border: `1px solid ${s.color}33`, borderRadius: 8 }}>
                     <span style={{ fontFamily: "monospace", fontSize: 11, color: s.color, fontWeight: 700, minWidth: 110 }}>{s.status}</span>
                     <span style={{ fontFamily: "monospace", fontSize: 11, color: C.textMuted, flex: 1 }}>{s.condition}</span>
                     <span style={{ fontSize: 11, color: C.textDim, flex: 2, lineHeight: 1.5 }}>{s.why}</span>
@@ -794,15 +794,15 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
         {/* ━━━ REPO ━━━ */}
         {tab === "repo" && (
           <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            
+
             {/* Visual Architecture Explorer */}
             <div className="animate-fadeIn" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 32 }}>
               <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 24, textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "center" }}>Diagrama de Flujo e Ingeniería</div>
-              
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", marginBottom: 32 }}>
+
+              <div className="arch-modules" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", marginBottom: 32 }}>
                 {ARCH_MODULES.map((m, i) => (
                   <React.Fragment key={m.id}>
-                    <button 
+                    <button
                       onClick={() => setSelectedModule(m.id)}
                       style={{
                         background: selectedModule === m.id ? m.color + "1A" : C.surfaceHover,
@@ -828,7 +828,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                 const m = ARCH_MODULES.find(x => x.id === selectedModule);
                 if (!m) return null;
                 return (
-                  <div className="animate-fadeIn" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 32, padding: 24, background: C.surfaceHover, borderRadius: 12, border: `1px solid ${C.border}` }}>
+                  <div className="animate-fadeIn arch-detail-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 32, padding: 24, background: C.surfaceHover, borderRadius: 12, border: `1px solid ${C.border}` }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
                         <div style={{ padding: 8, background: m.color, borderRadius: 8, color: "white", fontSize: 18 }}>{m.icon}</div>
@@ -905,9 +905,9 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {[
                   { label: "Python 3.12", color: C.blue }, { label: "pandas 2.x", color: C.blue },
-                  { label: "PostgreSQL", color: C.teal }, { label: "React 19", color: C.teal },
+                  { label: "React 19", color: C.teal },
                   { label: "Vite", color: C.purple }, { label: "AWS Lambda", color: C.amber },
-                  { label: "OpenAI GPT-4o", color: C.green }, { label: "GitHub Actions", color: C.purple },
+                  { label: "OpenAI GPT-4o", color: C.green },
                 ].map((t) => <Badge key={t.label} color={t.color} bg={C.surfaceHover}>{t.label}</Badge>)}
               </div>
             </div>
@@ -929,7 +929,7 @@ jobs:
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: `1px solid ${C.border}`, padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", color: C.textDim, fontSize: 11, marginTop: "auto" }}>
+      <div className="responsive-footer" style={{ borderTop: `1px solid ${C.border}`, padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", color: C.textDim, fontSize: 11, marginTop: "auto" }}>
         <span>Data Engineering Challenge · Pipeline v2.0</span>
         <span>Python · pandas · SQL · AWS · Validación inteligente</span>
       </div>
