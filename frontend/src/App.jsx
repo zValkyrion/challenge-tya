@@ -231,6 +231,118 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
         { tipo: "Sobrepago", casos: "17", impacto: "$12,450" },
         { tipo: "Pre-Emisión", casos: "20", impacto: "$8,900" }
       ]
+    },
+    // ─── BÁSICAS ─────────────────────────────────────────
+    {
+      title: "11. Total de Clientes por Ciudad",
+      why: "Consulta de exploración básica para entender la distribución geográfica de la base de clientes.",
+      joins: [],
+      sql: `SELECT ciudad, COUNT(*) AS total_clientes\nFROM clientes\nGROUP BY ciudad\nORDER BY total_clientes DESC;`,
+      result: [
+        { ciudad: "Querétaro", total_clientes: "8" },
+        { ciudad: "Monterrey", total_clientes: "4" },
+        { ciudad: "Guadalajara", total_clientes: "3" }
+      ]
+    },
+    {
+      title: "12. Conteo de Facturas por Cliente",
+      why: "Identifica qué clientes generan más transacciones. Básico para dimensionar la actividad comercial.",
+      joins: [{ from: "facturas", to: "clientes", key: "id_cliente", reason: "Asocia cada factura con su cliente." }],
+      sql: `SELECT c.nombre, COUNT(f.id_factura) AS num_facturas,\n  SUM(f.monto_total) AS total_facturado\nFROM facturas f\nJOIN clientes c ON f.id_cliente = c.id_cliente\nGROUP BY c.nombre\nORDER BY num_facturas DESC;`,
+      result: [
+        { nombre: "Cliente 20", facturas: "5", total: "$52,392" },
+        { nombre: "Cliente 19", facturas: "4", total: "$28,102" },
+        { nombre: "Cliente 11", facturas: "4", total: "$59,311" }
+      ]
+    },
+    {
+      title: "13. Facturas sin Ningún Pago",
+      why: "Detecta facturas completamente ignoradas — representan riesgo directo de pérdida total.",
+      joins: [{ from: "facturas", to: "pagos", key: "id_factura", reason: "LEFT JOIN para detectar facturas sin coincidencia en pagos." }],
+      sql: `SELECT f.id_factura, f.id_cliente, f.monto_total,\n  f.fecha_emision, f.fecha_vencimiento\nFROM facturas f\nLEFT JOIN pagos p ON f.id_factura = p.id_factura\nWHERE p.id_pago IS NULL\n  AND f.monto_total > 0\nORDER BY f.monto_total DESC;`,
+      result: [
+        { id_factura: "1019", cliente: "4", monto: "$19,163" },
+        { id_factura: "1008", cliente: "3", monto: "$4,045" }
+      ]
+    },
+    // ─── INTERMEDIAS ─────────────────────────────────────
+    {
+      title: "14. Promedio de Días para Cobrar (DSO)",
+      why: "Days Sales Outstanding: métrica financiera clave. Un DSO alto indica problemas de liquidez.",
+      joins: [
+        { from: "facturas", to: "pagos", key: "id_factura", reason: "Calcula diferencia entre emisión y primer pago." }
+      ],
+      sql: `SELECT\n  ROUND(AVG(p.fecha_pago - f.fecha_emision), 1) AS dso_promedio,\n  ROUND(MIN(p.fecha_pago - f.fecha_emision), 1) AS dso_min,\n  ROUND(MAX(p.fecha_pago - f.fecha_emision), 1) AS dso_max\nFROM facturas f\nJOIN pagos p ON f.id_factura = p.id_factura\nWHERE p.monto_pago > 0;`,
+      result: [
+        { dso_promedio: "18.3 días", dso_min: "2 días", dso_max: "45 días" }
+      ]
+    },
+    {
+      title: "15. Aging Buckets (Antigüedad de Cartera)",
+      why: "Clasifica la deuda pendiente en rangos temporales. Estándar en reportes de tesorería y auditoría.",
+      joins: [{ from: "tabla_base", to: "facturas", key: "id_factura", reason: "Usa saldos calculados y fechas de vencimiento." }],
+      sql: `SELECT\n  CASE\n    WHEN ('2024-12-31'::DATE - fecha_vencimiento) <= 0 THEN 'Vigente'\n    WHEN ('2024-12-31'::DATE - fecha_vencimiento) <= 30 THEN '1-30 días'\n    WHEN ('2024-12-31'::DATE - fecha_vencimiento) <= 60 THEN '31-60 días'\n    WHEN ('2024-12-31'::DATE - fecha_vencimiento) <= 90 THEN '61-90 días'\n    ELSE '+90 días'\n  END AS bucket,\n  COUNT(*) AS facturas,\n  SUM(monto_total - monto_pagado_total) AS saldo_pendiente\nFROM tabla_base_facturas\nWHERE estatus_factura NOT IN ('PAGADA', 'NOTA_CREDITO')\nGROUP BY 1\nORDER BY MIN('2024-12-31'::DATE - fecha_vencimiento);`,
+      result: [
+        { bucket: "Vigente", facturas: "12", saldo: "$48,200" },
+        { bucket: "1-30 días", facturas: "8", saldo: "$32,100" },
+        { bucket: "31-60 días", facturas: "3", saldo: "$15,575" }
+      ]
+    },
+    {
+      title: "16. Tasa de Cobranza por Ciudad",
+      why: "Identifica qué localidades tienen mejor y peor eficiencia de cobro. Útil para acciones de campo.",
+      joins: [
+        { from: "tabla_base", to: "clientes", key: "id_cliente", reason: "Agrupa métricas de cobro por ciudad del cliente." }
+      ],
+      sql: `SELECT c.ciudad,\n  COUNT(DISTINCT tb.id_factura) AS facturas,\n  ROUND(SUM(tb.monto_pagado_total) / NULLIF(SUM(tb.monto_total), 0) * 100, 1) AS pct_cobrado,\n  SUM(tb.monto_total - tb.monto_pagado_total) AS saldo_abierto\nFROM tabla_base_facturas tb\nJOIN clientes c ON tb.id_cliente = c.id_cliente\nWHERE tb.monto_total > 0\nGROUP BY c.ciudad\nORDER BY pct_cobrado ASC;`,
+      result: [
+        { ciudad: "Cancún", facturas: "4", pct_cobrado: "65.2%", saldo: "$12,400" },
+        { ciudad: "Querétaro", facturas: "15", pct_cobrado: "88.7%", saldo: "$8,200" }
+      ]
+    },
+    // ─── AVANZADAS ───────────────────────────────────────
+    {
+      title: "17. Crecimiento MoM (Month over Month)",
+      why: "Calcula la variación porcentual de ventas mes a mes. Métrica ejecutiva de tendencia.",
+      joins: [{ from: "facturas", to: "—", key: "—", reason: "Window function LAG para comparar con mes anterior." }],
+      sql: `WITH mensual AS (\n  SELECT DATE_TRUNC('month', fecha_emision) AS mes,\n    SUM(monto_total) AS total\n  FROM facturas\n  WHERE monto_total > 0\n  GROUP BY 1\n)\nSELECT mes,\n  total,\n  LAG(total) OVER (ORDER BY mes) AS mes_anterior,\n  ROUND((total - LAG(total) OVER (ORDER BY mes)) /\n    NULLIF(LAG(total) OVER (ORDER BY mes), 0) * 100, 1) AS pct_cambio\nFROM mensual\nORDER BY mes;`,
+      result: [
+        { mes: "2024-11", total: "$218,500", anterior: "—", cambio: "—" },
+        { mes: "2024-12", total: "$195,200", anterior: "$218,500", cambio: "-10.7%" }
+      ]
+    },
+    {
+      title: "18. Cobertura Acumulada de Pagos (Running Total)",
+      why: "Visualiza cómo los pagos van cubriendo el saldo de cada factura en el tiempo.",
+      joins: [{ from: "pagos", to: "facturas", key: "id_factura", reason: "Ordena pagos cronológicamente y acumula por factura." }],
+      sql: `SELECT p.id_factura, p.id_pago, p.fecha_pago, p.monto_pago,\n  SUM(p.monto_pago) OVER (\n    PARTITION BY p.id_factura ORDER BY p.fecha_pago\n    ROWS UNBOUNDED PRECEDING\n  ) AS acumulado,\n  f.monto_total,\n  ROUND(SUM(p.monto_pago) OVER (\n    PARTITION BY p.id_factura ORDER BY p.fecha_pago\n    ROWS UNBOUNDED PRECEDING\n  ) / NULLIF(f.monto_total, 0) * 100, 1) AS pct_cubierto\nFROM pagos p\nJOIN facturas f ON p.id_factura = f.id_factura\nWHERE p.monto_pago > 0\nORDER BY p.id_factura, p.fecha_pago;`,
+      result: [
+        { factura: "1032", pago: "$5,383", acumulado: "$5,383", pct: "33.9%" },
+        { factura: "1032", pago: "$1,500", acumulado: "$6,883", pct: "43.4%" }
+      ]
+    },
+    {
+      title: "19. Scoring de Riesgo por Cliente",
+      why: "Combina múltiples factores (mora, monto, flags) en un score numérico de riesgo crediticio.",
+      joins: [
+        { from: "tabla_base", to: "clientes", key: "id_cliente", reason: "Agrega flags, montos y estatus por cliente." }
+      ],
+      sql: `WITH scores AS (\n  SELECT c.nombre, c.segmento,\n    COUNT(CASE WHEN tb.estatus_factura = 'VENCIDA' THEN 1 END) AS facturas_vencidas,\n    SUM(CASE WHEN tb.flag_sobrepago THEN 1 ELSE 0 END) AS flags_sobrepago,\n    SUM(CASE WHEN tb.flag_pago_antes_emision THEN 1 ELSE 0 END) AS flags_pre_emision,\n    SUM(tb.monto_total - tb.monto_pagado_total) AS saldo_total,\n    ROUND(SUM(tb.monto_pagado_total) / NULLIF(SUM(tb.monto_total), 0) * 100, 1) AS pct_pago\n  FROM tabla_base_facturas tb\n  JOIN clientes c ON tb.id_cliente = c.id_cliente\n  GROUP BY c.nombre, c.segmento\n)\nSELECT nombre, segmento,\n  facturas_vencidas * 30 + flags_sobrepago * 10 + flags_pre_emision * 15\n  + CASE WHEN pct_pago < 50 THEN 25 WHEN pct_pago < 80 THEN 10 ELSE 0 END\n  AS risk_score,\n  pct_pago, saldo_total\nFROM scores\nORDER BY risk_score DESC;`,
+      result: [
+        { nombre: "Cliente 15", segmento: "Retail", risk_score: "65", pct_pago: "52%", saldo: "$17,575" },
+        { nombre: "Cliente 7", segmento: "Corporativo", risk_score: "40", pct_pago: "74%", saldo: "$10,200" }
+      ]
+    },
+    {
+      title: "20. Análisis de Notas de Crédito vs Ingresos",
+      why: "Mide el peso de las devoluciones (notas de crédito) sobre los ingresos brutos. Altos ratios indican problemas de satisfacción.",
+      joins: [{ from: "facturas", to: "clientes", key: "id_cliente", reason: "Segmenta devoluciones por cliente." }],
+      sql: `SELECT\n  SUM(CASE WHEN monto_total > 0 THEN monto_total ELSE 0 END) AS ingresos_brutos,\n  SUM(CASE WHEN monto_total < 0 THEN ABS(monto_total) ELSE 0 END) AS notas_credito,\n  ROUND(\n    SUM(CASE WHEN monto_total < 0 THEN ABS(monto_total) ELSE 0 END) /\n    NULLIF(SUM(CASE WHEN monto_total > 0 THEN monto_total ELSE 0 END), 0) * 100\n  , 2) AS ratio_devolucion\nFROM facturas;\n\n-- Desglose por cliente con notas de crédito:\nSELECT c.nombre, f.id_factura, f.monto_total\nFROM facturas f\nJOIN clientes c ON f.id_cliente = c.id_cliente\nWHERE f.monto_total < 0\nORDER BY f.monto_total ASC;`,
+      result: [
+        { metrica: "Ingresos brutos", valor: "$489,600" },
+        { metrica: "Notas de crédito", valor: "$32,436" },
+        { metrica: "Ratio devolución", valor: "6.62%" }
+      ]
     }
   ];
 
@@ -590,7 +702,7 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
             {/* Queries interactivos */}
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 28 }}>
               <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                Parte 6 – Análisis SQL (3 queries)
+                Parte 6 – Análisis SQL (20 queries)
               </div>
 
               {/* Query selector tabs */}
