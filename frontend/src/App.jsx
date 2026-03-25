@@ -11,16 +11,24 @@ import DataCorrectionPanel from "./DataCorrectionPanel.jsx";
 const REPO_STRUCTURE = `challenge/
 ├── entrega-sencilla/
 │   ├── python/
-│   │   └── procesamiento.py (Core del Pipeline)
+│   │   └── procesamiento.py  # ETL + Calidad
 │   ├── sql/
-│   │   ├── modelos.sql (Vistas y Tablas Base)
-│   │   └── analisis.sql (Inteligencia de Negocio)
-│   └── README.md (Documentación técnica)
-├── frontend/ (Dashboard React v2.0)
-└── data/ (CSVs de origen)`;
+│   │   ├── modelo.sql        # DDL + Vista Analítica
+│   │   └── analisis.sql      # 10 Consultas de Negocio
+│   ├── outputs/              # Resultados del pipeline
+│   └── README.md
+├── frontend/                 # Dashboard React + IA
+│   ├── src/
+│   │   ├── App.jsx           # UI Principal
+│   │   ├── pipeline.js       # Lógica espejo de Python
+│   │   └── utils.js          # Parsers y Design Tokens
+│   └── .env.example
+├── clientes.csv
+├── facturas.csv
+└── pagos.csv`;
 
 function AppInner() {
-  const [tab, setTab] = useState("repo");
+  const [tab, setTab] = useState("evaluacion");
   const [selectedModule, setSelectedModule] = useState("pipeline");
   const ARCH_MODULES = [
     { id: "ingesta", label: "01 Ingesta", icon: "📥", color: C.blue, why: "La entrada limpia es vital para evitar el 'Garbage In, Garbage Out'.", how: "Carga dinámica de CSVs con detección de encoding y normalización de headers.", purpose: "Centralizar la recepción de datos de Clientes, Facturas y Pagos." },
@@ -89,14 +97,21 @@ En 5 oraciones concisas y de alto nivel ejecutivo, proporciona:
 2. Acciones inmediatas recomendadas para mitigar riesgos de liquidez y corregir anomalías en el proceso de cobranza y facturación de TYA.
 Sé muy directo y propositivo. Español.`;
 
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+      if (!apiKey) {
+        setAiInsight("⚠️ API Key no configurada. Crea un archivo `frontend/.env` con:\nVITE_OPENAI_API_KEY=tu_clave_aqui\nLuego reinicia el servidor (npm run dev).");
+        setAiLoading(false);
+        return;
+      }
+
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
-        headers: {
+        headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+          "Authorization": `Bearer ${apiKey}`
         },
-        body: JSON.stringify({
-          model: "gpt-4o",
+        body: JSON.stringify({ 
+          model: "gpt-4o", 
           messages: [
             { role: "system", content: "Eres un consultor senior especializado en procesos financieros y arquitectura de datos empresariales." },
             { role: "user", content: prompt }
@@ -105,10 +120,15 @@ Sé muy directo y propositivo. Español.`;
         }),
       });
       const data = await response.json();
-      setAiInsight(data.choices?.[0]?.message?.content || "Análisis estratégico completado.");
-    } catch (e) {
-      console.error(e);
-      setAiInsight("Análisis AI no disponible momentáneamente.");
+      if (data.error) {
+        console.error("OpenAI API Error:", data.error);
+        setAiInsight(`⚠️ Error de OpenAI: ${data.error.message || "Verifica tu API Key y créditos disponibles."}`);
+      } else {
+        setAiInsight(data.choices?.[0]?.message?.content || "Análisis estratégico completado sin datos adicionales.");
+      }
+    } catch (e) { 
+      console.error("AI Fetch Error:", e);
+      setAiInsight("⚠️ No se pudo conectar con OpenAI. Verifica tu conexión a internet y que la API Key sea válida."); 
     }
     setAiLoading(false);
   }, [filesReady, corrections, toast]);
@@ -392,9 +412,9 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                   <button onClick={() => setDetailFilter(null)} style={{ background: "none", border: "none", color: C.textDim, cursor: "pointer", fontSize: 18 }}>×</button>
                 </div>
                 <TablePreview data={detailFilter.data} columns={
-                  detailFilter.type === "staging"
-                    ? [{ key: "id_factura", label: "ID Factura" }, { key: "id_cliente", label: "ID Cliente" }, { key: "monto_total", label: "Monto" }, { key: "razon", label: "Razón" }]
-                    : [{ key: "id_factura", label: "Factura" }, { key: "id_cliente", label: "Cliente" }, { key: "monto_total", label: "Monto" }, { key: "monto_pagado_total", label: "Pagado" }, { key: "estatus_factura", label: "Estatus" }]
+                   detailFilter.type === "staging" 
+                   ? [ { key: "id_factura", label: "ID Factura" }, { key: "id_cliente", label: "ID Cliente" }, { key: "monto_total", label: "Monto" }, { key: "razon", label: "Razón" } ]
+                   : [ { key: "id_factura", label: "Factura" }, { key: "id_cliente", label: "Cliente" }, { key: "monto_total", label: "Monto" }, { key: "monto_pagado_total", label: "Pagado" }, { key: "estatus_factura", label: "Estatus" } ]
                 } />
               </div>
             )}
@@ -434,11 +454,11 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                     result.facturasRechazadas.length === 0
                       ? <div style={{ padding: 24, color: C.textMuted, fontSize: 13, textAlign: "center" }}>Sin registros rechazados.</div>
                       : <TablePreview data={result.facturasRechazadas} columns={[
-                        { key: "id_factura", label: "ID Factura" },
-                        { key: "id_cliente", label: "ID Cliente" },
-                        { key: "monto_total", label: "Monto" },
-                        { key: "razon", label: "Razón" },
-                      ]} />
+                          { key: "id_factura", label: "ID Factura" },
+                          { key: "id_cliente", label: "ID Cliente" },
+                          { key: "monto_total", label: "Monto" },
+                          { key: "razon", label: "Razón" },
+                        ]} />
                   )}
                 </div>
               </div>
@@ -774,15 +794,15 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
         {/* ━━━ REPO ━━━ */}
         {tab === "repo" && (
           <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-
+            
             {/* Visual Architecture Explorer */}
             <div className="animate-fadeIn" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 32 }}>
               <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 24, textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "center" }}>Diagrama de Flujo e Ingeniería</div>
-
+              
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", marginBottom: 32 }}>
                 {ARCH_MODULES.map((m, i) => (
                   <React.Fragment key={m.id}>
-                    <button
+                    <button 
                       onClick={() => setSelectedModule(m.id)}
                       style={{
                         background: selectedModule === m.id ? m.color + "1A" : C.surfaceHover,

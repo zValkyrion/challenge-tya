@@ -69,7 +69,7 @@ SELECT
     c.segmento,
     ROUND(AVG(EXTRACT(DAY FROM (p.fecha_pago - f.fecha_vencimiento))), 1) AS avg_retraso_dias
 FROM pagos p
-JOIN facturas f ON f.id_factura = f.id_factura
+JOIN facturas f ON p.id_factura = f.id_factura
 JOIN clientes c ON c.id_cliente = f.id_cliente
 WHERE p.fecha_pago > f.fecha_vencimiento
 GROUP BY c.segmento;
