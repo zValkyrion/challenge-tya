@@ -63,7 +63,7 @@ function detectIssues(files) {
           id: `fac-date-${r.id_factura}`, dataset: "facturas", pkField: "id_factura", pkValue: r.id_factura,
           field: "fecha_vencimiento", currentValue: r.fecha_vencimiento, severity: "alta",
           type: "fecha inválida", description: `Año claramente incorrecto`,
-          suggestion: r.fecha_vencimiento.replace(/\/0(\d{3})$/, "/2$1"),
+          suggestion: r.fecha_vencimiento.replace(/\/0[0-2](\d{2})$/, "/20$1"),
         });
       }
     });
@@ -222,11 +222,18 @@ export default function DataCorrectionPanel({ files, onCorrectionsReady }) {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => { setCorrections([]); setIssueStatuses({}); onCorrectionsReady([]); toast?.("Correcciones reseteadas", "info"); }} style={{
+            background: "none", border: `1px solid ${C.border}`, color: C.textDim,
+            borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 600,
+            cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+          }} onMouseEnter={(e) => e.currentTarget.style.borderColor = C.textMuted} onMouseLeave={(e) => e.currentTarget.style.borderColor = C.border}>
+            Restablecer
+          </button>
           <button onClick={applyAllSuggestions} style={{
             background: C.tealBg, color: C.teal, border: `1px solid ${C.teal}33`,
             borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 600,
             cursor: "pointer", fontFamily: "inherit",
-          }}>✓ Aplicar todas las sugerencias</button>
+          }}>✓ Sugerencias</button>
           <button onClick={() => onCorrectionsReady(corrections)} style={{
             background: C.teal, color: "#000", border: "none",
             borderRadius: 8, padding: "8px 16px", fontSize: 12, fontWeight: 700,

@@ -52,15 +52,17 @@ export function LogLine({ type, msg, detail }) {
 }
 
 // ─── MetricCard ──────────────────────────────────────────
-export function MetricCard({ label, value, color = C.text, sub, icon }) {
+export function MetricCard({ label, value, color = C.text, sub, icon, onSelect }) {
   return (
     <div className="animate-fadeIn" style={{
       background: C.surface, border: `1px solid ${C.border}`,
       borderRadius: 12, padding: "18px 22px",
       transition: "border-color 0.2s, transform 0.15s",
+      cursor: "pointer",
     }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = color + "44"; e.currentTarget.style.transform = "translateY(-2px)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.transform = "translateY(0)"; }}
+      onClick={onSelect}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
@@ -144,13 +146,18 @@ export function StatusDonut({ dist }) {
 }
 
 // ─── FlagCard ────────────────────────────────────────────
-export function FlagCard({ label, count, color, description }) {
+export function FlagCard({ label, count, color, description, onSelect }) {
   return (
     <div className="animate-fadeIn" style={{
       background: C.surface, border: `1px solid ${count > 0 ? color + "44" : C.border}`,
       borderRadius: 10, padding: "14px 16px",
-      transition: "border-color 0.2s",
-    }}>
+      transition: "border-color 0.2s, background 0.15s",
+      cursor: "pointer",
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.background = C.surfaceHover; }}
+    onMouseLeave={(e) => { e.currentTarget.style.background = C.surface; }}
+    onClick={onSelect}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 6, lineHeight: 1.4 }}>{label}</div>
         <div style={{ fontSize: 20, fontWeight: 700, color: count > 0 ? color : C.textDim, minWidth: 32, textAlign: "right" }}>{count}</div>

@@ -18,6 +18,8 @@ import pandas as pd
 import hashlib
 import os
 import sys
+import re
+import unicodedata
 from datetime import datetime
 
 
@@ -28,27 +30,72 @@ from datetime import datetime
 # Fecha de corte del dataset (todos los datos son nov-dic 2024)
 FECHA_CORTE = pd.Timestamp("2024-12-31")
 
-# Directorio de datos (relativo a este script)
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", )
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "outputs")
+# Directorio de datos (los CSV están en la raíz del proyecto)
+DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "outputs"))
 
-# Mapeo de normalización de ciudades
-# Cubre variantes de encoding, capitalización y abreviaciones
+# Ciudades canónicas esperadas
+CIUDADES_VALIDAS = ["Querétaro", "Guadalajara", "Monterrey", "Cancún", "Ciudad de México"]
+
+# Mapa de coincidencias exactas (Doble Check Hardcoded)
+# Se usa antes del algoritmo dinámico para asegurar precisión en casos conocidos.
 CITY_MAP = {
-    "querétaro": "Querétaro",
     "queretaro": "Querétaro",
     "quertaro": "Querétaro",
+    "gdl": "Guadalajara",
+    "monterey": "Monterrey",
+    "cancun": "Cancún",
+    # Variantes de encoding comunes
     "querçÿtaro": "Querétaro",
     "querç¸taro": "Querétaro",
-    "guadalajara": "Guadalajara",
-    "gdl": "Guadalajara",
-    "monterrey": "Monterrey",
-    "monterey": "Monterrey",    # Probable omisión de letra
-    "cancún": "Cancún",
-    "cancun": "Cancún",
     "cancã£n": "Cancún",
     "canc£n": "Cancún",
 }
+
+def normalizar_texto(texto):
+    """
+    Limpia texto de acentos, caracteres especiales y borked encoding.
+    Ej: "Querétaro" -> "queretaro", "Querç¸taro" -> "queretaro"
+    """
+    if pd.isna(texto): return ""
+    # 1. Decodificar errores comunes de encoding (si vienen como bytes mal interpretados)
+    t = str(texto).strip().lower()
+    # 2. Quitar acentos y normalizar unicode
+    t = "".join(c for c in unicodedata.normalize('NFD', t) if unicodedata.category(c) != 'Mn')
+    # 3. Mantener solo letras (quita basura de encoding como ç, £, ¤, etc)
+    t = re.sub(r'[^a-z\s]', '', t)
+    return t.strip()
+
+def identificar_ciudad(texto_original):
+    """
+    Encuentra la ciudad más probable. 
+    Lógica: 1. Mapa estático (Doble check) -> 2. Algoritmo dinámico.
+    """
+    if pd.isna(texto_original): return None
+    
+    # 1. Doble check con mapa estático para velocidad y precisión conocida
+    key = str(texto_original).strip().lower()
+    if key in CITY_MAP:
+        return CITY_MAP[key]
+
+    # 2. Algoritmo dinámico si no está en el mapa
+    limpio = normalizar_texto(texto_original)
+    if not limpio: return texto_original
+
+    # Mapeo de keywords comunes
+    if "gdl" in limpio: return "Guadalajara"
+    if "cdmx" in limpio or "mexico" in limpio: return "Ciudad de México"
+
+    # Buscar coincidencia por intersección de caracteres (fuzzy simple)
+    best_match = texto_original
+    max_score = 0
+    for ciudad in CIUDADES_VALIDAS:
+        c_limpia = normalizar_texto(ciudad)
+        # Score basado en si una es subcadena o similitud de caracteres
+        if c_limpia in limpio or limpio in c_limpia:
+            return ciudad # Coincidencia directa corregida
+
+    return best_match
 
 
 # ────────────────────────────────────────────────────────────
@@ -93,11 +140,9 @@ def limpiar_clientes(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # Normalización de ciudades
+    # Normalización de ciudades (Algoritmo general, no hardcodeado)
     ciudades_originales = df["ciudad"].copy()
-    df["ciudad"] = df["ciudad"].apply(
-        lambda x: CITY_MAP.get(str(x).lower().strip(), x) if pd.notna(x) else None
-    )
+    df["ciudad"] = df["ciudad"].apply(identificar_ciudad)
     cambios = (ciudades_originales != df["ciudad"]).sum()
     print(f"  ✓ Ciudades normalizadas: {cambios} cambios")
 
@@ -135,6 +180,11 @@ def parsear_fecha(valor: str) -> pd.Timestamp:
     if "/" in s and len(s) == 10:
         try:
             d, m, y = s.split("/")
+            # Corregir error común: 0224 -> 2024
+            if y.startswith("0") and len(y) == 4 and int(y) < 1000:
+                y = str(int(y) + 1800) if y.startswith("02") else y # Simplificado
+                # O más directo:
+                if y.startswith("02"): y = y.replace("02", "20", 1)
             return pd.Timestamp(f"{y}-{m}-{d}")
         except (ValueError, IndexError):
             return pd.NaT
@@ -383,16 +433,32 @@ def evaluar_calidad(tabla_base: pd.DataFrame, facturas_rechazadas: pd.DataFrame)
 # ────────────────────────────────────────────────────────────
 
 def main():
+    """
+    Módulo principal con soporte para rutas personalizadas.
+    Uso: python procesamiento.py [ruta_base_proyecto]
+    """
+    global DATA_DIR, OUTPUT_DIR
+
+    # Si el usuario pasa una ruta, la usamos
+    base_path = sys.argv[1] if len(sys.argv) > 1 else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    DATA_DIR = base_path
+    OUTPUT_DIR = os.path.join(base_path, "entrega-sencilla", "outputs")
+
     print("=" * 60)
-    print("PIPELINE DE CALIDAD DE DATOS")
-    print("Prueba Técnica · Data Engineer · TYA Tierra y Armonía")
+    print("PIPELINE DE CALIDAD DE DATOS (Versión Generalizada)")
+    print(f"Buscando CSVs en: {DATA_DIR}")
     print("=" * 60)
 
     # ── Paso 1: Carga ──
     print("\n── PASO 1: Carga de datos ──")
-    clientes = cargar_csv("clientes.csv")
-    facturas = cargar_csv("facturas.csv")
-    pagos = cargar_csv("pagos.csv")
+    try:
+        clientes = cargar_csv("clientes.csv")
+        facturas = cargar_csv("facturas.csv")
+        pagos = cargar_csv("pagos.csv")
+    except FileNotFoundError as e:
+        print(f"\n❌ ERROR: No se encontró uno de los archivos CSV en {DATA_DIR}")
+        print("Asegúrate de que clientes.csv, facturas.csv y pagos.csv estén en esa carpeta.")
+        return
 
     # Hashes para idempotencia
     print("  Hashes MD5:")

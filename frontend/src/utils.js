@@ -78,7 +78,9 @@ export function parseDate(raw) {
     return new Date(`${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`);
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
     const [d, m, y] = s.split("/");
-    return new Date(`${y}-${m}-${d}`);
+    let fy = y;
+    if (y.startsWith("02") && parseInt(y) < 1000) fy = "20" + y.slice(2);
+    return new Date(`${fy}-${m}-${d}`);
   }
   if (/^\d{2}-\d{2}-\d{3}$/.test(s)) {
     const [d, m, y] = s.split("-");

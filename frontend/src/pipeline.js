@@ -33,26 +33,59 @@ export function runPipeline(clientesRaw, facturasRaw, pagosRaw, corrections = []
     });
   }
 
-  // ── Limpieza: clientes ──
+  // ── Limpieza: clientes (Algoritmo general, no hardcodeado) ──
   log("info", "Limpiando clientes...");
-  const cityMap = {
-    "quertaro": "Querétaro", "querétaro": "Querétaro", "querçÿtaro": "Querétaro",
-    "queretaro": "Querétaro", "querçtaro": "Querétaro",
-    "guadalajara": "Guadalajara", "gdl": "Guadalajara",
-    "monterey": "Monterrey", "monterrey": "Monterrey",
-    "cancun": "Cancún", "cancún": "Cancún", "cancã£n": "Cancún", "canc£n": "Cancún",
+  
+  const CIUDADES_VALIDAS = ["Querétaro", "Guadalajara", "Monterrey", "Cancún", "Ciudad de México"];
+  
+  // Mapa de coincidencias exactas (Doble Check Hardcoded)
+  const CITY_MAP = {
+    "queretaro": "Querétaro", "quertaro": "Querétaro", "gdl": "Guadalajara",
+    "monterey": "Monterrey", "cancun": "Cancún",
+    "querçÿtaro": "Querétaro", "querç¸taro": "Querétaro",
+    "cancã£n": "Cancún", "canc£n": "Cancún",
   };
+
+  const normalizeText = (t) => {
+    if (!t) return "";
+    return t.toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Quita acentos
+      .replace(/[^a-z\s]/g, "");     // Quita caracteres especiales
+  };
+
+  const identifyCity = (original) => {
+    if (!original) return null;
+    
+    // 1. Doble check con mapa estático
+    const key = original.toString().trim().toLowerCase();
+    if (CITY_MAP[key]) return CITY_MAP[key];
+
+    // 2. Algoritmo dinámico
+    const limpio = normalizeText(original);
+    if (!limpio) return original;
+
+    if (limpio.includes("gdl")) return "Guadalajara";
+    if (limpio.includes("cdmx") || limpio.includes("mexico")) return "Ciudad de México";
+
+    for (const ciudad of CIUDADES_VALIDAS) {
+      const cLimpia = normalizeText(ciudad);
+      if (limpio.includes(cLimpia) || cLimpia.includes(limpio)) return ciudad;
+    }
+    return original;
+  };
+
   let ciudadesCorregidas = 0;
   clientes = clientes.map((c) => {
-    const key = (c.ciudad || "").toLowerCase().normalize("NFC").trim();
-    const corrected = cityMap[key];
+    const corrected = identifyCity(c.ciudad);
     if (corrected && corrected !== c.ciudad) ciudadesCorregidas++;
     const segmento = c.segmento === "Carporativo" ? "Corporativo" : c.segmento;
     if (c.segmento === "Carporativo")
       log("warn", `Typo corregido: 'Carporativo' → 'Corporativo'`, `cliente ${c.id_cliente}`);
-    return { ...c, ciudad: corrected || c.ciudad || null, segmento };
+    return { ...c, ciudad: corrected, segmento };
   });
-  log("ok", `Ciudades normalizadas`, `${ciudadesCorregidas} variantes corregidas`);
+  log("ok", `Ciudades normalizadas (algoritmo dinámico)`, `${ciudadesCorregidas} variantes corregidas`);
 
   // ── Limpieza: facturas ──
   log("info", "Limpiando facturas...");

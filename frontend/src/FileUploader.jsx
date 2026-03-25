@@ -125,7 +125,7 @@ function ValidationResult({ result, fileName }) {
 }
 
 // ─── FileUploader ────────────────────────────────────────
-export default function FileUploader({ onFilesReady, onFilesLoaded }) {
+export default function FileUploader({ onFilesReady, onFilesLoaded, onClear }) {
   const [files, setFiles] = useState({ clientes: null, facturas: null, pagos: null });
   const [validations, setValidations] = useState({});
   const [dragging, setDragging] = useState(null);
@@ -250,8 +250,9 @@ export default function FileUploader({ onFilesReady, onFilesLoaded }) {
     setFiles({ clientes: null, facturas: null, pagos: null });
     setValidations({});
     setCachedKeys({});
+    onClear?.(); // Notificar al padre para resetear estados globales
     toast?.("Caché limpiado", "info");
-  }, [toast]);
+  }, [onClear, toast]);
 
   const zones = [
     { key: "clientes", ...SCHEMAS.clientes },
