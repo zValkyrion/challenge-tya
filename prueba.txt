@@ -1,0 +1,142 @@
+Prueba Técnica – Data Engineer (Junior / Mid) 
+Objetivo 
+Queremos entender cómo analizas datos, cómo estructuras un problema y cómo 
+tomas decisiones usando una combinación de Python y SQL. 
+No buscamos una solución perfecta ni compleja. Nos interesa más: 
+• tu razonamiento 
+• tu claridad al explicar 
+• cómo trabajas con datos imperfectos 
+• cómo separas limpieza, transformación y análisis 
+ 
+Tiempo estimado 
+2 a 3 horas 
+ 
+Datos 
+Se te proporcionan 3 archivos: 
+• clientes.csv 
+• facturas.csv 
+• pagos.csv 
+Estos archivos contienen información de clientes, facturación y pagos. 
+ 
+Instrucciones generales 
+• Usa Python y SQL 
+• Puedes apoyarte en librerías básicas como pandas 
+• Prioriza claridad sobre complejidad 
+• Documenta tus supuestos 
+• Si algo no está claro, indícalo 
+• Explica brevemente tus decisiones 
+ 
+Parte 1 – Entendimiento del problema 
+En un archivo README.md, responde brevemente: 
+1. ¿Qué entiendes que representan estos datos? 
+2. ¿Qué problemas o inconsistencias detectaste? 
+3. ¿Qué cosas no están claras? 
+4. ¿Qué supuestos hiciste para poder avanzar? 
+ 
+Parte 2 – Modelo de datos en SQL 
+Define un modelo simple para trabajar con los datos. 
+Incluye: 
+• tablas principales: clientes, facturas, pagos 
+• llaves primarias 
+• relaciones entre tablas 
+Puedes entregarlo en un archivo modelo.sql con CREATE TABLE o en un modelo.md. 
+ 
+Parte 3 – Limpieza y preparación con Python 
+Usando Python, realiza lo siguiente: 
+1. Carga de datos 
+Carga los 3 archivos y muestra un resumen básico: 
+• columnas 
+• tipos de dato 
+• algunos registros de ejemplo 
+2. Limpieza básica 
+Haz una limpieza mínima de los datos, por ejemplo: 
+• normalizar fechas 
+• corregir o estandarizar ciudades 
+• identificar nulos o valores inválidos 
+3. Preparación de tabla base 
+Construye una tabla a nivel factura que incluya al menos: 
+• id_factura 
+• id_cliente 
+• monto_total 
+• monto_pagado_total 
+• numero_pagos 
+• fecha_ultimo_pago 
+4. Flags o anomalías 
+Agrega al menos 2 indicadores de calidad, por ejemplo: 
+• pago antes de emisión 
+• sobrepago 
+• fecha inválida 
+Importante 
+No necesitas corregir todos los errores. Nos interesa más que expliques: 
+• qué corregiste 
+• qué decidiste dejar igual 
+• qué marcarías como inconsistente 
+ 
+Parte 4 – Calidad de datos 
+Define al menos 5 reglas de calidad de datos. 
+Para cada regla, explica: 
+• qué valida 
+• por qué es importante 
+• qué harías si no se cumple 
+Ejemplos: 
+• pagos sin factura 
+• fechas inválidas 
+• pagos antes de fecha de emisión 
+• montos negativos 
+• ciudades inconsistentes 
+ 
+Parte 5 – Transformación analítica 
+A partir de la tabla preparada, construye una tabla analítica a nivel factura con un 
+campo adicional: 
+• estatus_factura 
+Define y explica la lógica de ese estatus. Por ejemplo: 
+• PAGADA 
+• PENDIENTE 
+• PARCIAL 
+• VENCIDA 
+Esta parte la puedes resolver en Python o SQL, pero explica tu lógica en el 
+README.md. 
+ 
+Parte 6 – Análisis en SQL 
+Usando SQL, responde las siguientes preguntas: 
+1. Ventas totales por cliente por mes 
+2. Promedio de días entre emisión y pago 
+3. Facturas vencidas por más de 30 días 
+Nos interesa ver: 
+• joins correctos 
+• agregaciones 
+• claridad en las consultas 
+ 
+Parte 7 – Pensamiento de pipeline 
+Responde brevemente en el README.md: 
+Si este proceso se ejecutara todos los días: 
+1. ¿Cómo evitarías duplicados? 
+2. ¿Qué harías si llega el mismo archivo otra vez? 
+3. ¿Qué harías si llega un pago nuevo para una factura ya procesada? 
+No buscamos una arquitectura compleja, sino entender tu criterio. 
+ 
+Forma de entrega 
+Entrega un .zip con una estructura similar a esta: 
+/prueba-data-engineer 
+│ 
+├── README.md 
+├── modelo.sql 
+├── python/ 
+│   └── procesamiento.py 
+├── sql/ 
+│   └── analisis.sql 
+└── opcional/ 
+    └── notas.txt 
+ 
+ 
+Qué esperamos ver 
+Buscamos una solución simple, clara y bien explicada. 
+No buscamos: 
+• optimización avanzada 
+• herramientas complejas 
+• arquitectura enterprise 
+Sí buscamos: 
+• orden 
+• criterio 
+• honestidad sobre dudas 
+• decisiones razonables

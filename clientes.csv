@@ -1,0 +1,22 @@
+id_cliente,nombre,segmento,ciudad
+1,Cliente 1,Retail,Monterrey
+2,Cliente 2,Retail,Quer‚taro
+3,Cliente 3,Retail,GUADALAJARA
+4,Cliente 4,Distribuidor,Quer‚taro
+5,Cliente 5,Distribuidor,Quer‚taro
+6,Cliente 6,Retail,QuerÇ¸taro
+7,Cliente 7,Corporativo,Canc£n
+8,Cliente 8,Distribuidor,Quer‚taro
+9,Cliente 9,Corporativo,Quer‚taro
+10,Cliente 10,Corporativo,Monterey
+11,Cliente 11,Distribuidor,Monterrey
+12,Cliente 12,Distribuidor,Monterrey
+13,Cliente 13,Retail,Canc£n
+14,Cliente 14,Corporativo,Quer‚taro
+15,Cliente 15,Retail,Guadalajara
+16,Cliente 16,Corporativo,QuerÇ¸taro
+17,Cliente 17,Distribuidor,Guadalajara
+18,Cliente 18,Corporativo,Cancun
+19,Cliente 19,Distribuidor,Quer‚taro
+20,Cliente 20,Retail,Gdl
+21,Cliente 21,Carporativo,

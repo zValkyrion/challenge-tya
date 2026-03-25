@@ -1,0 +1,36 @@
+version: 1
+
+# ============================================================
+# Build Spec para AWS Amplify
+# Challenge TYA Tierra y Armonía
+# ============================================================
+
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "=== Challenge TYA Tierra y Armonía ==="
+        - echo "Node version:" && node --version
+        - echo "npm version:" && npm --version
+        - cd frontend
+        - npm ci --prefer-offline
+
+    build:
+      commands:
+        - echo "Building production bundle..."
+        - npm run build
+        - echo "Build completed successfully!"
+
+    postBuild:
+      commands:
+        - echo "Build artifacts ready for deployment"
+
+  artifacts:
+    baseDirectory: frontend/dist
+    files:
+      - "**/*"
+
+  cache:
+    paths:
+      - frontend/node_modules/**/*
+      - frontend/.vite/**/*
