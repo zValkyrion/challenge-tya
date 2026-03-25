@@ -93,7 +93,7 @@ Sé muy directo y propositivo. Español.`;
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": "Bearer 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"
+          "Authorization": `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
         },
         body: JSON.stringify({ 
           model: "gpt-4o", 
