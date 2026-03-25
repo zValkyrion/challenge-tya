@@ -91,12 +91,12 @@ Sé muy directo y propositivo. Español.`;
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
         },
-        body: JSON.stringify({ 
-          model: "gpt-4o", 
+        body: JSON.stringify({
+          model: "gpt-4o",
           messages: [
             { role: "system", content: "Eres un consultor senior especializado en procesos financieros y arquitectura de datos empresariales." },
             { role: "user", content: prompt }
@@ -106,9 +106,9 @@ Sé muy directo y propositivo. Español.`;
       });
       const data = await response.json();
       setAiInsight(data.choices?.[0]?.message?.content || "Análisis estratégico completado.");
-    } catch (e) { 
+    } catch (e) {
       console.error(e);
-      setAiInsight("Análisis AI no disponible momentáneamente."); 
+      setAiInsight("Análisis AI no disponible momentáneamente.");
     }
     setAiLoading(false);
   }, [filesReady, corrections, toast]);
@@ -392,9 +392,9 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                   <button onClick={() => setDetailFilter(null)} style={{ background: "none", border: "none", color: C.textDim, cursor: "pointer", fontSize: 18 }}>×</button>
                 </div>
                 <TablePreview data={detailFilter.data} columns={
-                   detailFilter.type === "staging" 
-                   ? [ { key: "id_factura", label: "ID Factura" }, { key: "id_cliente", label: "ID Cliente" }, { key: "monto_total", label: "Monto" }, { key: "razon", label: "Razón" } ]
-                   : [ { key: "id_factura", label: "Factura" }, { key: "id_cliente", label: "Cliente" }, { key: "monto_total", label: "Monto" }, { key: "monto_pagado_total", label: "Pagado" }, { key: "estatus_factura", label: "Estatus" } ]
+                  detailFilter.type === "staging"
+                    ? [{ key: "id_factura", label: "ID Factura" }, { key: "id_cliente", label: "ID Cliente" }, { key: "monto_total", label: "Monto" }, { key: "razon", label: "Razón" }]
+                    : [{ key: "id_factura", label: "Factura" }, { key: "id_cliente", label: "Cliente" }, { key: "monto_total", label: "Monto" }, { key: "monto_pagado_total", label: "Pagado" }, { key: "estatus_factura", label: "Estatus" }]
                 } />
               </div>
             )}
@@ -434,11 +434,11 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
                     result.facturasRechazadas.length === 0
                       ? <div style={{ padding: 24, color: C.textMuted, fontSize: 13, textAlign: "center" }}>Sin registros rechazados.</div>
                       : <TablePreview data={result.facturasRechazadas} columns={[
-                          { key: "id_factura", label: "ID Factura" },
-                          { key: "id_cliente", label: "ID Cliente" },
-                          { key: "monto_total", label: "Monto" },
-                          { key: "razon", label: "Razón" },
-                        ]} />
+                        { key: "id_factura", label: "ID Factura" },
+                        { key: "id_cliente", label: "ID Cliente" },
+                        { key: "monto_total", label: "Monto" },
+                        { key: "razon", label: "Razón" },
+                      ]} />
                   )}
                 </div>
               </div>
@@ -774,15 +774,15 @@ SELECT nombre, total, SUM(total) OVER(ORDER BY total DESC) / SUM(total) OVER() A
         {/* ━━━ REPO ━━━ */}
         {tab === "repo" && (
           <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            
+
             {/* Visual Architecture Explorer */}
             <div className="animate-fadeIn" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 32 }}>
               <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 24, textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "center" }}>Diagrama de Flujo e Ingeniería</div>
-              
+
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", marginBottom: 32 }}>
                 {ARCH_MODULES.map((m, i) => (
                   <React.Fragment key={m.id}>
-                    <button 
+                    <button
                       onClick={() => setSelectedModule(m.id)}
                       style={{
                         background: selectedModule === m.id ? m.color + "1A" : C.surfaceHover,
