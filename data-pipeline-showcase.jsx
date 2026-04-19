@@ -922,7 +922,7 @@ En 4-5 oraciones concisas (sin bullets, como párrafo de resumen ejecutivo para 
                   { label: "pytest", color: C.green }, { label: "black + ruff", color: C.green },
                   { label: "AWS Lambda", color: C.amber },
                   { label: "AWS S3", color: C.amber }, { label: "AWS EventBridge", color: C.amber },
-                  { label: "AWS SES", color: C.amber }, { label: "GitHub Actions", color: C.purple },
+                  { label: "AWS SES", color: C.amber },
                   { label: "Docker", color: C.purple },
                 ].map((t) => (
                   <Badge key={t.label} color={t.color} bg={C.surfaceHover}>{t.label}</Badge>

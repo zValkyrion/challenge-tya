@@ -84,7 +84,7 @@ Consulta [`cloud/README.md`](cloud/README.md) para instrucciones de despliegue c
 | Capa | Tecnología | Versión |
 |------|-----------|---------|
 | ETL / Backend | Python + pandas | 3.10+ |
-| Modelo de datos | PostgreSQL (DDL) | Compatible |
+| Modelo de datos | Compatible |
 | Frontend | React + Vite | 19.x / 8.x |
 | Iconografía | Lucide React | 1.6+ |
 | AI Analysis | OpenAI GPT-4o | API v1 |
